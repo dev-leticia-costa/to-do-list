@@ -52,14 +52,49 @@ function App() {
       headers: {
         "Content-type": "application/json",
       },
-      //mandar objeto que foi criado como uma string
-    });
-   //fazer envio para API
-   // console.log(todo);
+      //mandar objeto que foi criado como uma string, aqui os dados foram adicionados com sucesso
+        });
+   //fazer envio para API 
+   // previews state: estado anterior do argumento no front end, para não precisar dar refresh
+ 
+   setTodos((prevState) => [...prevState, todo]);
     setTitle("");
     setTime("");
-
   };
+
+  const handleEdit = async (todo) => {
+  todo.done = !todo.done;
+  const data = await fetch(API + "/todos:"+ todo.id, {
+      //parametro da requisição
+      method: "PUT",
+      body: JSON.stringify(todo),
+      headers: {
+        "Content-type": "application/json",
+      },
+
+      });
+      //front
+      setTodos((prevState) => prevState.map((t) => (t.id ===data.id ? (t=data) : t)));
+      //pegar todos os todo e comparar apra ver se foi deletado
+             
+  };
+
+  const handleDelete = async (id) => {
+    //delete method (back)
+
+     await fetch(API + "/todos:"+ id, {
+      //parametro da requisição
+      method: "DELETE"
+      });
+      //front
+      setTodos((prevState) => prevState.filter((todo) => todo.id !== id));
+      //pegar todos os todo e comparar apra ver se foi deletado
+             
+  };
+
+  if (loading) {
+    return <p> Só mais uns instantes...</p>
+  }
 
   return (
     <div className="App">
@@ -67,7 +102,7 @@ function App() {
         <h1>To do</h1>
       </div>
       <div className="form-todo">
-        <h2>Form: insira sua tarefa</h2>
+        <h2>Crie sua tarefa</h2>
         <form onSubmit={handleSubmit}>
           <div className='form-control'>
             <label htmlFor="title">O que você vai fazer?</label>
@@ -91,10 +126,21 @@ function App() {
         </form>
       </div>
       <div className="list-todo">
-        <p>List:</p>
+        <h2>List:</h2>
         {todos.length === 0 && <p> Crie sua primeira tarefa :) </p>}
+        {todos.map((todo) => (
+          <div className='todo.key' key={todo.id}>
+            <h3 className= {todo.done ? "todo-done" : ""}>{todo.title}</h3>
+            <p>Duração: {todo.time}</p>
+            <div className= "actions">
+            <span onClick = {() => handleEdit(todo)}>
+              {!todo.done ? <BsBookmarkCheck /> : <BsBookmarkCheckFill></BsBookmarkCheckFill>}
+            </span>
+            <BsTrash onClick = {() => handleDelete(todo.id)}/>
+            </div>
       </div>
-
+        ))}
+    </div>
     </div>
   );
 }
